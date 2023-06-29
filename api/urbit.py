@@ -88,7 +88,6 @@ class Urbit:
     def start(self, patp, key='', skip=False):
         if not skip:
             skip = self.load_config(patp)
-
         if skip:
             if self.minio.start_minio(f"minio_{patp}", self._urbits[patp]):
                 return self.urb_docker.start(self._urbits[patp],
@@ -103,8 +102,28 @@ class Urbit:
         self.urb_docker.exec(patp, f"cat {patp}/.vere.lock")
         if self.urb_docker.exec(patp, f"kill $(cat {patp}/.vere.lock"):
             self.urb_docker.exec(patp, f"cat {patp}/.vere.lock")
-            return self.urb_docker.stop(patp)
+            if self.graceful_exit(patp):
+                return self.urb_docker.stop(patp)
                 
+    # |exit 
+    def graceful_exit(self, patp):
+        try:
+            Log.log(f"{patp}: Attempting to send |exit")
+            # Naming the hoon file
+            name = "bar_exit"
+            ";<  our=@p  bind:m  get-our"
+            hoon = f"=/  m  (strand ,vase)  ;<  ~  bind:m  (poke [~{patp} %hood] %drum-exit !>(~))  (pure:m !>('success'))"
+            hoon_file = f"{name}.hoon"
+            self.create_hoon(patp, name, hoon)
+            # Executing the hoon file
+            raw = Click().click_exec(patp, self.urb_docker.exec, hoon_file)
+            res = Click().filter_success(raw)
+            self.delete_hoon(patp, name)
+            Log.log(f"{patp}: |exit sent successfully")
+        except Exception as e:
+            Log.log(f"urbit:graceful_exit:{patp} Error: {e}")
+            return False
+        return True
 
     # Delete Urbit Pier and MiniO
     def delete(self, patp):
@@ -1240,7 +1259,7 @@ class Urbit:
 
                 # Updater Urbit information
                 try:
-                    if (self.config_object.update_avail) and (self.config['updateMode'] == 'auto'):
+                    if (self.config_object.update_avail) and (self.config['updateMode'] != 'off'):
                         Log.log(f"{patp}: Replacing local data with version server data")
                         self._urbits[patp]['urbit_repo'] = self.updater_info['repo']
                         self._urbits[patp]['urbit_version'] = self.updater_info['tag']
@@ -1251,7 +1270,7 @@ class Urbit:
                         self._urbits[patp]['minio_amd64_sha256'] = self.updater_minio['amd64_sha256']
                         self._urbits[patp]['minio_arm64_sha256'] = self.updater_minio['arm64_sha256']
                         self.save_config(patp)
-                except:
+                except Exception as e:
                     pass
 
                 Log.log(f"{patp}: Config loaded")
