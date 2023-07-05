@@ -134,8 +134,8 @@ class UrbitDocker:
         if c:
             try:
                 c.stop()
-            except Exception:
-                Log.log(f"{patp}: Failed to stop container")
+            except Exception as e:
+                Log.log(f"{patp}: Failed to stop container: {e}")
                 return False
 
         Log.log(f"{patp}: Container stopped")
@@ -207,11 +207,11 @@ class UrbitDocker:
             return False
         return True
 
-    def full_logs(self, patp):
+    def full_logs(self, patp,timestamps=False):
         c = self.get_container(patp)
         if not c:
             return False
-        return c.logs()
+        return c.logs(timestamps=timestamps)
 
     def exec(self, patp, command):
         c = self.get_container(patp)
