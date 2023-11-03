@@ -90,6 +90,7 @@ if [ -e *.key ]; then
     mv $keyname /tmp
 
     # Boot urbit with the key, exit when done booting
+    
     urbit $ttyflag -w $(basename $keyname .key) -k /tmp/$keyname -p $amesPort -x --http-port $httpPort --loom $loom
 
     # Remove the keyfile for security
@@ -119,6 +120,6 @@ if [ $devMode == "True" ]; then
     tmux kill-session -t urbit
     exit 0
 else
-    urbit $ttyflag -p $amesPort --http-port $httpPort --loom $loom $dirname
+    screen -dmS urbit urbit -p $amesPort --http-port $httpPort --loom $loom $dirname
 fi
 """
