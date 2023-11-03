@@ -5,7 +5,7 @@ RUN apt-get install -y make build-essential libssl-dev zlib1g-dev \
        libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm \
        libncurses5-dev libncursesw5-dev xz-utils tk-dev wget \
        libtk8.6 libgdm-dev libdb4o-cil-dev libpcap-dev \
-       patchelf clang ca-certificates
+       patchelf clang ca-certificates screen
 
 RUN update-ca-certificates --fresh
 RUN export SSL_CERT_DIR=/etc/ssl/certs
